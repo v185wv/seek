@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中山篆字体查询</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .content {
+            padding: 25px;
+        }
+        
+        .input-section {
+            margin-bottom: 25px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e1e5ee;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        
+        input:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        button {
+            padding: 12px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        .input-hint {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .result-section {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+        
+        .result-title {
+            color: #6c757d;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+        
+        .seal-chars-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .seal-char-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .seal-char {
+            font-size: 4rem;
+            color: #2c3e50;
+            margin: 5px 0;
+            line-height: 1;
+        }
+        
+        .original-char {
+            font-size: 1.2rem;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        
+        .placeholder-text {
+            color: #adb5bd;
+            font-size: 1rem;
+        }
+        
+        .char-info {
+            margin-top: 10px;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .not-found {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 15px;
+            color: #6c757d;
+            font-size: 0.8rem;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        @media (max-width: 600px) {
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .seal-char {
+                font-size: 3rem;
+            }
+            
+            .seal-chars-container {
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>中山篆字体查询</h1>
+            <p class="subtitle">输入汉字，查询中山篆字形（支持多汉字查询）</p >
+        </header>
+        
+        <div class="content">
+            <div class="input-section">
+                <div class="input-group">
+                    <input type="text" id="hanzi-input" placeholder="请输入一个或多个汉字..." autofocus>
+                    <button id="query-btn">查询</button>
+                </div>
+                <div class="input-hint">提示：可以输入多个汉字，系统将分别显示每个汉字的中山篆字形</div>
+            </div>
+            
+            <div class="result-section">
+                <div class="result-title">中山篆字形</div>
+                <div id="result-display" class="placeholder-text">查询结果将显示在这里</div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2025 中山篆字体查询工具</p >
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hanziInput = document.getElementById('hanzi-input');
+            const queryBtn = document.getElementById('query-btn');
+            const resultDisplay = document.getElementById('result-display');
+            
+            // 中山篆字体映射（示例数据，实际需要完整字库）
+            const zhongshanSealMap = {
+                '北': './北.png',
+                '博': './博.png',
+                '到': './到.png',
+                '河': './河.png',
+                '近': './近.png',
+                '么': './么.png',
+                '美': './美.png',
+                '末': './末.png',
+                '那': './那.png',
+                '物': './物.png',
+                '这': './这.png',
+                '周': './周.png',
+                '你': './你.png',
+                '线': './线.png',
+                '颜': './颜.png',
+                '与': './与.png',
+                '在': './在.png',
+                '值': './值.png',
+                '中': './中.png',
+                '篆': './篆.png',
+                '山': './山.png',
+                '国': './国.png',
+                '际': './际.png',
+                '陪': './陪.png',
+                '我': './我.png',
+                '一': './一.png',
+                '庄': './庄.png',
+                '都': './都.png',
+                '回': './回.png',
+                '家': './家.png',
+                '来': './来.png',
+                '去': './去.png',
+                '速': './速.png',
+                '于': './于.png',
+                '院': './院.png',
+                '政': './政.png',
+                '撰': './撰.png',
+            };
+            
+            // 查询按钮点击事件
+            queryBtn.addEventListener('click', function() {
+                const inputText = hanziInput.value.trim();
+                
+                if (!inputText) {
+                    resultDisplay.innerHTML = '<div class="placeholder-text">请输入汉字</div>';
+                    return;
+                }
+                
+                // 提取所有汉字字符
+                const hanziRegex = /[\u4e00-\u9fa5]/g;
+                const hanziChars = inputText.match(hanziRegex);
+                
+                if (!hanziChars || hanziChars.length === 0) {
+                    resultDisplay.innerHTML = '<div class="placeholder-text">请输入有效的汉字</div>';
+                    return;
+                }
+                
+                // 清空结果容器
+                resultDisplay.innerHTML = '';
+                
+                // 创建容器用于存放所有字形
+                const charsContainer = document.createElement('div');
+                charsContainer.className = 'seal-chars-container';
+                
+                // 统计找到和未找到的字形
+                let foundCount = 0;
+                let notFoundChars = [];
+                
+                // 遍历每个汉字并查找对应的中山篆字形
+                hanziChars.forEach(char => {
+                    const sealChar = zhongshanSealMap[char];
+                    
+                    // 创建单个汉字容器
+                    const charItem = document.createElement('div');
+                    charItem.className = 'seal-char-item';
+                    
+                    // 显示原汉字
+                    const originalChar = document.createElement('div');
+                    originalChar.className = 'original-char';
+                    originalChar.textContent = char;
+                    charItem.appendChild(originalChar);
+                    
+                    if (sealChar) {
+                        foundCount++;
+                        
+                        // 如果是图片路径，创建 <img>
+                        if (/\.(png|jpe?g|gif|svg)$/i.test(sealChar)) {
+                            const img = document.createElement('img');
+                            img.className = 'seal-char';
+                            img.src = encodeURI(sealChar);
+                            img.alt = char;
+                            img.style.maxWidth = '120px';
+                            img.style.maxHeight = '120px';
+                            charItem.appendChild(img);
+                        } 
+                        // 否则当作纯文本字符处理
+                        else {
+                            const div = document.createElement('div');
+                            div.className = 'seal-char';
+                            div.textContent = sealChar;
+                            charItem.appendChild(div);
+                        }
+                    } else {
+                        notFoundChars.push(char);
+                        
+                        // 显示未找到提示
+                        const notFoundDiv = document.createElement('div');
+                        notFoundDiv.className = 'placeholder-text';
+                        notFoundDiv.textContent = '未找到';
+                        charItem.appendChild(notFoundDiv);
+                    }
+                    
+                    charsContainer.appendChild(charItem);
+                });
+                
+                resultDisplay.appendChild(charsContainer);
+                
+                // 显示统计信息
+                const info = document.createElement('div');
+                info.className = 'char-info';
+                
+                if (foundCount === hanziChars.length) {
+                    info.textContent = `已找到所有 ${hanziChars.length} 个汉字的中山篆字形`;
+                } else if (foundCount > 0) {
+                    info.innerHTML = `已找到 ${foundCount} 个汉字的中山篆字形`;
+                    
+                    if (notFoundChars.length > 0) {
+                        const notFoundInfo = document.createElement('div');
+                        notFoundInfo.className = 'not-found';
+                        notFoundInfo.textContent = `未找到: ${notFoundChars.join('、')}`;
+                        resultDisplay.appendChild(notFoundInfo);
+                    }
+                } else {
+                    info.textContent = '未找到任何汉字的中山篆字形';
+                }
+                
+                resultDisplay.appendChild(info);
+            });
+            
+            // 按Enter键触发查询
+            hanziInput.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    queryBtn.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

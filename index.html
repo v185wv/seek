@@ -202,6 +202,12 @@
             <div class="result-section">
                 <div class="result-title">中山篆字形</div>
                 <div id="result-display" class="placeholder-text">查询结果将显示在这里</div>
+                <!-- 新增：视频播放器（点击某个字形后播放对应视频） -->
+                <div class="video-container" style="margin-top:12px; display:flex; justify-content:center;">
+                    <video id="seal-video" controls loop style="display:none; max-width:100%; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.12);">
+                        您的浏览器不支持 video 标签。
+                    </video>
+                </div>
             </div>
         </div>
         
@@ -215,6 +221,7 @@
             const hanziInput = document.getElementById('hanzi-input');
             const queryBtn = document.getElementById('query-btn');
             const resultDisplay = document.getElementById('result-display');
+            const sealVideo = document.getElementById('seal-video');
             
             // 中山篆字体映射（示例数据，实际需要完整字库）
             const zhongshanSealMap = {
@@ -255,6 +262,15 @@
                 '院': './院.png',
                 '政': './政.png',
                 '撰': './撰.png',
+            };
+            
+            // 新增：字符对应的视频映射（把示例文件放到项目 videos/ 目录）
+            const zhongshanSealVideoMap = {
+                '家': './家.mp4',
+                '博': './videos/博.mp4',
+                '中': './videos/中.mp4',
+                '篆': './videos/篆.mp4',
+                // 按需补充更多映射
             };
             
             // 查询按钮点击事件
@@ -312,6 +328,13 @@
                             img.style.maxWidth = '120px';
                             img.style.maxHeight = '120px';
                             charItem.appendChild(img);
+                            
+                            // 点击播放对应视频（如果存在）
+                            charItem.style.cursor = 'pointer';
+                            charItem.title = '点击播放该字对应的视频（若有）';
+                            charItem.addEventListener('click', () => {
+                                playVideoForChar(char, charItem);
+                            });
                         } 
                         // 否则当作纯文本字符处理
                         else {
@@ -356,6 +379,44 @@
                 
                 resultDisplay.appendChild(info);
             });
+            
+            // 播放指定汉字的视频（若映射存在）
+            function playVideoForChar(char, clickedItem) {
+                // 取消之前的选中样式
+                document.querySelectorAll('.seal-char-item.selected').forEach(el => el.classList.remove('selected'));
+                if (clickedItem) clickedItem.classList.add('selected');
+    
+                const videoUrl = zhongshanSealVideoMap[char];
+                if (!videoUrl) {
+                    // 无对应视频：隐藏播放器
+                    sealVideo.pause();
+                    sealVideo.removeAttribute('src');
+                    sealVideo.style.display = 'none';
+                    return;
+                }
+    
+                // 设置并播放视频
+                sealVideo.style.display = 'block';
+                sealVideo.src = videoUrl;
+                sealVideo.load();
+                sealVideo.play().catch(() => {
+                    // 自动播放可能被阻止：仅加载并让用户手动播放
+                });
+            }
+    
+            // 当页面点击其它区域时，清除已选中项（可选）
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.seal-char-item')) {
+                    document.querySelectorAll('.seal-char-item.selected').forEach(el => el.classList.remove('selected'));
+                }
+            });
+            
+            // 样式：选中高亮（通过 JS 插入样式）
+            const style = document.createElement('style');
+            style.textContent = `
+                .seal-char-item.selected { outline: 3px solid rgba(52,152,219,0.25); border-radius:8px; padding:6px; }
+            `;
+            document.head.appendChild(style);
             
             // 按Enter键触发查询
             hanziInput.addEventListener('keyup', function(event) {
